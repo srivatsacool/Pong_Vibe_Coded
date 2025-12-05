@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PONG Controller - Build.Srivatsa</title>
+    <link rel="icon" type="image/png" href="/Untitled.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a1a2e 100%);
+            display: flex;
+            flex-direction: column;
+            color: #fff;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(0, 245, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.15) 0%, transparent 40%);
+            z-index: 0;
+        }
+
+        .join-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .join-screen.hidden { display: none; }
+
+        .exit-btn {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: inherit;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .exit-btn:hover {
+            background: rgba(255, 68, 68, 0.1);
+            border-color: rgba(255, 68, 68, 0.3);
+            color: #ff4444;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00f5ff 0%, #ff00ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.25rem;
+        }
+
+        .tagline {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 0.5rem;
+        }
+
+        .brand {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 2.5rem;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .input-group { margin-bottom: 1.25rem; }
+
+        .input-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            color: #fff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-field::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+        .input-field:focus {
+            border-color: rgba(0, 245, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+        }
+
+        .pin-input {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            color: #00f5ff;
+        }
+
+        .join-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #00f5ff, #0088ff);
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .join-btn:active { transform: scale(0.98); }
+
+        .error-message {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #ff4444;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(255, 68, 68, 0.1);
+            border-radius: 8px;
+        }
+
+        .error-message.hidden { display: none; }
+
+        .controller-screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .controller-screen.active { display: flex; }
+
+        .controller-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .player-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            text-transform: uppercase;
+        }
+
+        .player-badge.left {
+            background: rgba(0, 245, 255, 0.2);
+            color: #00f5ff;
+            border: 1px solid rgba(0, 245, 255, 0.3);
+        }
+
+        .player-badge.right {
+            background: rgba(255, 0, 255, 0.2);
+            color: #ff00ff;
+            border: 1px solid rgba(255, 0, 255, 0.3);
+        }
+
+        .player-name-display {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .connection-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: #00ff88;
+        }
+
+        .conn-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .mini-score {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .mini-score.left { color: #00f5ff; }
+        .mini-score.right { color: #ff00ff; }
+
+        .score-separator {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .touch-pad {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .touch-area {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 245, 255, 0.02) 50%, transparent 100%);
+        }
+
+        .paddle-track {
+            width: 80px;
+            height: 80%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            position: relative;
+        }
+
+        .paddle-indicator {
+            width: 70px;
+            height: 120px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: calc(50% - 60px);
+            border-radius: 35px;
+            transition: top 0.05s ease-out;
+        }
+
+        .paddle-indicator.left {
+            background: linear-gradient(180deg, #00f5ff, #0088aa);
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+        }
+
+        .paddle-indicator.right {
+            background: linear-gradient(180deg, #ff00ff, #aa0088);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.4);
+        }
+
+        .touch-hint {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.9rem;
+        }
+
+        .touch-hint-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            animation: bounce 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .waiting-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+        }
+
+        .waiting-message.hidden { display: none; }
+
+        .waiting-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 245, 255, 0.2);
+            border-top-color: #00f5ff;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .waiting-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .disconnect-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 26, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .disconnect-overlay.hidden { display: none; }
+
+        .disconnect-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .disconnect-text {
+            font-size: 1.1rem;
+            color: #ff4444;
+            margin-bottom: 1.5rem;
+        }
+
+        .reconnect-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #00f5ff, #0088ff);
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #000;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="join-screen" id="joinScreen">
+        <a href="/" class="exit-btn">← Exit</a>
+        
+        <div class="logo">PONG</div>
+        <div class="tagline">Controller</div>
+        <div class="brand">by Build.Srivatsa</div>
+        
+        <div class="glass-card">
+            <div class="input-group">
+                <label class="input-label">Your Name</label>
+                <input type="text" class="input-field" id="nameInput" maxlength="12" placeholder="Enter name" autocomplete="off">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Game PIN</label>
+                <input type="text" class="input-field pin-input" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="0000" autocomplete="off">
+            </div>
+            
+            <button class="join-btn" id="joinBtn">Join Game →</button>
+            
+            <div class="error-message hidden" id="errorMessage"></div>
+        </div>
+    </div>
+
+    <div class="controller-screen" id="controllerScreen">
+        <div class="controller-header">
+            <div class="player-info">
+                <span class="player-badge left" id="playerBadge">P1</span>
+                <span class="player-name-display" id="playerNameDisplay"></span>
+            </div>
+            <div class="connection-indicator">
+                <span class="conn-dot"></span>
+                <span>Connected</span>
+            </div>
+        </div>
+
+        <div class="score-display">
+            <span class="mini-score left" id="miniScoreLeft">0</span>
+            <span class="score-separator">:</span>
+            <span class="mini-score right" id="miniScoreRight">0</span>
+        </div>
+
+        <div class="touch-pad" id="touchPad">
+            <div class="touch-area" id="touchArea">
+                <div class="paddle-track">
+                    <div class="paddle-indicator left" id="paddleIndicator"></div>
+                </div>
+            </div>
+            
+            <div class="touch-hint" id="touchHint">
+                <div class="touch-hint-icon">↕</div>
+                <div>Drag to move paddle</div>
+            </div>
+
+            <div class="waiting-message" id="waitingMessage">
+                <div class="waiting-spinner"></div>
+                <div class="waiting-text">Waiting for game to start...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="disconnect-overlay hidden" id="disconnectOverlay">
+        <div class="disconnect-icon">📡</div>
+        <div class="disconnect-text">Connection Lost</div>
+        <button class="reconnect-btn" onclick="location.reload()">Reconnect</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/controller.js"></script>
+</body>
+</html>
