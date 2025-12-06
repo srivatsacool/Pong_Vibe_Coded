@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -409,6 +410,62 @@
         .pause-overlay.hidden {
             display: none;
         }
+
+        /* QR Code Styles */
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .qr-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+        }
+
+        #qrCode {
+            background: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qrCode canvas {
+            border-radius: 4px;
+        }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            margin: 0.75rem 0;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .or-divider span {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -455,7 +512,14 @@
 
             <div class="overlay" id="waitingOverlay">
                 <div class="overlay-title">Ready to Play</div>
-                <div class="overlay-text">Enter this PIN on your phone</div>
+                
+                <div class="qr-section">
+                    <div class="qr-label">📱 Scan to Join</div>
+                    <div id="qrCode"></div>
+                </div>
+
+                <div class="or-divider"><span>or enter PIN</span></div>
+
                 <div class="overlay-pin" id="overlayPin">----</div>
                 <div class="overlay-text">Go to: <strong id="controllerUrl"></strong></div>
                 <div class="overlay-text" id="waitingText">Waiting for players...</div>

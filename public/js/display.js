@@ -71,32 +71,9 @@ function playSound(type) {
                 break;
                 
             case 'win':
-                // Victory fanfare
-                const osc1 = ctx.createOscillator();
-                const gain1 = ctx.createGain();
-                osc1.connect(gain1);
-                gain1.connect(ctx.destination);
-                osc1.type = 'square';
-                osc1.frequency.setValueAtTime(523, ctx.currentTime);
-                osc1.frequency.setValueAtTime(659, ctx.currentTime + 0.15);
-                osc1.frequency.setValueAtTime(784, ctx.currentTime + 0.3);
-                osc1.frequency.setValueAtTime(1047, ctx.currentTime + 0.45);
-                gain1.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
-                osc1.start(ctx.currentTime);
-                osc1.stop(ctx.currentTime + 0.8);
-                return;
-                
             case 'lose':
-                // Sad descending tone
-                oscillator.type = 'sawtooth';
-                oscillator.frequency.setValueAtTime(400, ctx.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.5);
-                gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                oscillator.start(ctx.currentTime);
-                oscillator.stop(ctx.currentTime + 0.5);
-                break;
+                // Sounds disabled
+                return;
         }
     } catch (e) {
         console.log('Audio error:', e);
@@ -295,6 +272,31 @@ socket.on('roomCreated', (data) => {
     roomPin = data.pin;
     pinCodeEl.textContent = data.pin;
     overlayPinEl.textContent = data.pin;
+    
+    // Set controller URL
+    const baseUrl = window.location.origin;
+    const controllerUrl = `${baseUrl}/controller?pin=${data.pin}`;
+    controllerUrlEl.textContent = `${window.location.host}/controller`;
+    
+    // Generate QR code
+    const qrCodeEl = document.getElementById('qrCode');
+    if (qrCodeEl && typeof QRCode !== 'undefined') {
+        qrCodeEl.innerHTML = ''; // Clear existing
+        QRCode.toCanvas(controllerUrl, { 
+            width: 120,
+            margin: 1,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, (error, canvas) => {
+            if (error) {
+                console.error('QR Code error:', error);
+            } else {
+                qrCodeEl.appendChild(canvas);
+            }
+        });
+    }
     
     connectionStatus.classList.add('connected');
     connectionText.textContent = 'Online';

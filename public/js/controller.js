@@ -33,6 +33,17 @@ let lastTouchY = null;
 let touchStartY = null;
 let paddleStartY = null;
 
+// Auto-fill PIN from URL query parameter (for QR code scanning)
+const urlParams = new URLSearchParams(window.location.search);
+const pinFromUrl = urlParams.get('pin');
+if (pinFromUrl && pinInput) {
+    pinInput.value = pinFromUrl;
+    // Focus on name input if PIN is pre-filled
+    if (nameInput) {
+        nameInput.focus();
+    }
+}
+
 // Haptic feedback helper
 function vibrate(pattern) {
     if (navigator.vibrate) {
