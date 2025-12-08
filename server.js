@@ -21,7 +21,7 @@ const GAME_HEIGHT = 600;
 const PADDLE_HEIGHT = 100;
 const PADDLE_WIDTH = 15;
 const BALL_SIZE = 15;
-const BALL_SPEED = 6;
+const BALL_SPEED = 9;  // Increased from 6 for faster gameplay
 const PADDLE_SPEED = 8;
 const WIN_SCORE = 10;
 

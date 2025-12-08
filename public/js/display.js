@@ -273,29 +273,30 @@ socket.on('roomCreated', (data) => {
     pinCodeEl.textContent = data.pin;
     overlayPinEl.textContent = data.pin;
     
-    // Set controller URL
+    // Set controller URL (without PIN for QR code - user will enter PIN manually)
     const baseUrl = window.location.origin;
-    const controllerUrl = `${baseUrl}/controller?pin=${data.pin}`;
+    const controllerUrl = `${baseUrl}/controller`;
     controllerUrlEl.textContent = `${window.location.host}/controller`;
     
     // Generate QR code
     const qrCodeEl = document.getElementById('qrCode');
     if (qrCodeEl && typeof QRCode !== 'undefined') {
         qrCodeEl.innerHTML = ''; // Clear existing
-        QRCode.toCanvas(controllerUrl, { 
-            width: 120,
-            margin: 1,
-            color: {
-                dark: '#000000',
-                light: '#ffffff'
-            }
-        }, (error, canvas) => {
-            if (error) {
-                console.error('QR Code error:', error);
-            } else {
-                qrCodeEl.appendChild(canvas);
-            }
-        });
+        try {
+            new QRCode(qrCodeEl, {
+                text: controllerUrl,
+                width: 128,
+                height: 128,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        } catch (error) {
+            console.error('QR Code generation error:', error);
+            qrCodeEl.innerHTML = '<div style="color: #fff; font-size: 0.8rem;">QR Error</div>';
+        }
+    } else {
+        console.error('QRCode library not loaded');
     }
     
     connectionStatus.classList.add('connected');
@@ -532,3 +533,12 @@ function render() {
 }
 
 resizeCanvas();
+
+// Pause button handler
+const pauseBtnDisplay = document.getElementById('pauseBtnDisplay');
+if (pauseBtnDisplay) {
+    pauseBtnDisplay.addEventListener('click', () => {
+        socket.emit('pauseGame');
+    });
+}
+

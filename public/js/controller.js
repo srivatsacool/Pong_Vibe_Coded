@@ -12,9 +12,9 @@ const errorMessage = document.getElementById('errorMessage');
 const playerBadge = document.getElementById('playerBadge');
 const playerNameDisplay = document.getElementById('playerNameDisplay');
 const touchPad = document.getElementById('touchPad');
-const touchArea = document.getElementById('touchArea');
-const paddleIndicator = document.getElementById('paddleIndicator');
-const touchHint = document.getElementById('touchHint');
+const upBtn = document.getElementById('upBtn');
+const downBtn = document.getElementById('downBtn');
+const pauseBtn = document.getElementById('pauseBtn');
 const waitingMessage = document.getElementById('waitingMessage');
 const disconnectOverlay = document.getElementById('disconnectOverlay');
 const miniScoreLeft = document.getElementById('miniScoreLeft');
@@ -32,17 +32,6 @@ let paddleY = 0;
 let lastTouchY = null;
 let touchStartY = null;
 let paddleStartY = null;
-
-// Auto-fill PIN from URL query parameter (for QR code scanning)
-const urlParams = new URLSearchParams(window.location.search);
-const pinFromUrl = urlParams.get('pin');
-if (pinFromUrl && pinInput) {
-    pinInput.value = pinFromUrl;
-    // Focus on name input if PIN is pre-filled
-    if (nameInput) {
-        nameInput.focus();
-    }
-}
 
 // Haptic feedback helper
 function vibrate(pattern) {
@@ -123,13 +112,8 @@ socket.on('joinSuccess', (data) => {
         playerNameDisplay.textContent = playerName;
     }
     
-    if (playerSide === 'right') {
-        paddleIndicator.classList.add('right');
-    }
-    
     // Initialize paddle position
     paddleY = (GAME_HEIGHT - PADDLE_HEIGHT) / 2;
-    updatePaddleIndicator();
     
     // Switch to controller screen
     joinScreen.classList.add('hidden');
@@ -226,78 +210,61 @@ socket.on('connect', () => {
     }
 });
 
-// Touch controls
-function handleTouchStart(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    touchStartY = touch.clientY;
-    paddleStartY = paddleY;
-    lastTouchY = touch.clientY;
-    touchHint.classList.add('hidden');
-    
-    // Light haptic on touch start
+// Button controls
+let moveInterval = null;
+const MOVE_SPEED = 12; // Pixels per frame
+
+function startMovingUp() {
+    if (!isPlaying || moveInterval) return;
     vibrate(10);
+    moveInterval = setInterval(() => {
+        paddleY = Math.max(0, paddleY - MOVE_SPEED);
+        socket.emit('paddleMove', { position: paddleY });
+    }, 16); // 60 FPS
 }
 
-function handleTouchMove(e) {
-    e.preventDefault();
-    if (touchStartY === null) return;
-    
-    const touch = e.touches[0];
-    const deltaY = touch.clientY - touchStartY;
-    
-    // Convert touch movement to paddle position
-    const touchAreaHeight = touchArea.clientHeight;
-    const sensitivity = GAME_HEIGHT / touchAreaHeight;
-    
-    // Calculate new paddle position
-    let newPaddleY = paddleStartY + (deltaY * sensitivity);
-    
-    // Clamp to game bounds
-    const wasAtBoundary = paddleY <= 0 || paddleY >= GAME_HEIGHT - PADDLE_HEIGHT;
-    newPaddleY = Math.max(0, Math.min(GAME_HEIGHT - PADDLE_HEIGHT, newPaddleY));
-    const isAtBoundary = newPaddleY <= 0 || newPaddleY >= GAME_HEIGHT - PADDLE_HEIGHT;
-    
-    paddleY = newPaddleY;
-    lastTouchY = touch.clientY;
-    
-    // Send to server
-    socket.emit('paddleMove', { position: paddleY });
-    
-    // Update visual indicator
-    updatePaddleIndicator();
-    
-    // Haptic feedback on hitting boundary
-    if (isAtBoundary && !wasAtBoundary) {
-        vibrate(20);
+function startMovingDown() {
+    if (!isPlaying || moveInterval) return;
+    vibrate(10);
+    moveInterval = setInterval(() => {
+        paddleY = Math.min(GAME_HEIGHT - PADDLE_HEIGHT, paddleY + MOVE_SPEED);
+        socket.emit('paddleMove', { position: paddleY });
+    }, 16); // 60 FPS
+}
+
+function stopMoving() {
+    if (moveInterval) {
+        clearInterval(moveInterval);
+        moveInterval = null;
     }
 }
 
-function handleTouchEnd(e) {
-    e.preventDefault();
-    touchStartY = null;
-    paddleStartY = null;
-    lastTouchY = null;
+// Button event listeners
+if (upBtn) {
+    upBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMovingUp(); });
+    upBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopMoving(); });
+    upBtn.addEventListener('touchcancel', (e) => { e.preventDefault(); stopMoving(); });
+    upBtn.addEventListener('mousedown', startMovingUp);
+    upBtn.addEventListener('mouseup', stopMoving);
+    upBtn.addEventListener('mouseleave', stopMoving);
 }
 
-// Update paddle indicator position
-function updatePaddleIndicator() {
-    const trackHeight = document.querySelector('.paddle-track').clientHeight;
-    const indicatorHeight = paddleIndicator.clientHeight;
-    const maxTop = trackHeight - indicatorHeight;
-    
-    // Map game paddle Y to track indicator position
-    const percentage = paddleY / (GAME_HEIGHT - PADDLE_HEIGHT);
-    const indicatorTop = percentage * maxTop;
-    
-    paddleIndicator.style.top = `${indicatorTop}px`;
+if (downBtn) {
+    downBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMovingDown(); });
+    downBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopMoving(); });
+    downBtn.addEventListener('touchcancel', (e) => { e.preventDefault(); stopMoving(); });
+    downBtn.addEventListener('mousedown', startMovingDown);
+    downBtn.addEventListener('mouseup', stopMoving);
+    downBtn.addEventListener('mouseleave', stopMoving);
 }
 
-// Add touch event listeners
-touchArea.addEventListener('touchstart', handleTouchStart, { passive: false });
-touchArea.addEventListener('touchmove', handleTouchMove, { passive: false });
-touchArea.addEventListener('touchend', handleTouchEnd, { passive: false });
-touchArea.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+// Pause button
+if (pauseBtn) {
+    pauseBtn.addEventListener('click', () => {
+        socket.emit('pauseGame');
+        vibrate(50);
+    });
+}
 
 // Prevent scrolling on touch
 document.body.addEventListener('touchmove', (e) => {

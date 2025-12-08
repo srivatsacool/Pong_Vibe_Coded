@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -157,6 +157,26 @@
             font-weight: 700;
             color: #00f5ff;
             letter-spacing: 0.15em;
+        }
+
+        .pause-btn-display {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pause-btn-display:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .pause-btn-display:active {
+            transform: scale(0.95);
         }
 
         .scoreboard {
@@ -480,6 +500,7 @@
                     <span class="status-dot"></span>
                     <span id="connectionText">Offline</span>
                 </div>
+                <button class="pause-btn-display" id="pauseBtnDisplay">⏸</button>
                 <div class="pin-display">
                     <span class="pin-label">PIN</span>
                     <span class="pin-code" id="pinCode">----</span>

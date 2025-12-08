@@ -199,6 +199,26 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        .pause-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pause-btn:active {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(0.95);
+        }
+
         .player-info {
             display: flex;
             align-items: center;
@@ -284,60 +304,90 @@
             overflow: hidden;
         }
 
-        .touch-area {
+        /* Button Controls */
+        .button-controls {
             width: 100%;
             height: 100%;
-            position: relative;
             display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding: 2rem;
+            align-items: stretch;
+            justify-content: center;
+        }
+
+        .control-btn {
+            flex: 1;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(180deg, transparent 0%, rgba(0, 245, 255, 0.02) 50%, transparent 100%);
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
-        .paddle-track {
-            width: 80px;
-            height: 80%;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px;
-            position: relative;
+        .control-btn.up-btn {
+            background: linear-gradient(180deg, rgba(0, 245, 255, 0.1) 0%, rgba(0, 245, 255, 0.05) 100%);
+            border-color: rgba(0, 245, 255, 0.3);
         }
 
-        .paddle-indicator {
-            width: 70px;
-            height: 120px;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            top: calc(50% - 60px);
-            border-radius: 35px;
-            transition: top 0.05s ease-out;
+        .control-btn.down-btn {
+            background: linear-gradient(180deg, rgba(255, 0, 255, 0.1) 0%, rgba(255, 0, 255, 0.05) 100%);
+            border-color: rgba(255, 0, 255, 0.3);
         }
 
-        .paddle-indicator.left {
-            background: linear-gradient(180deg, #00f5ff, #0088aa);
-            box-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
+        .control-btn:active {
+            transform: scale(0.95);
         }
 
-        .paddle-indicator.right {
-            background: linear-gradient(180deg, #ff00ff, #aa0088);
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.4);
+        .control-btn.up-btn:active {
+            background: linear-gradient(180deg, rgba(0, 245, 255, 0.3) 0%, rgba(0, 245, 255, 0.15) 100%);
+            border-color: rgba(0, 245, 255, 0.6);
+            box-shadow: 0 0 40px rgba(0, 245, 255, 0.4);
         }
 
-        .touch-hint {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 0.9rem;
+        .control-btn.down-btn:active {
+            background: linear-gradient(180deg, rgba(255, 0, 255, 0.3) 0%, rgba(255, 0, 255, 0.15) 100%);
+            border-color: rgba(255, 0, 255, 0.6);
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.4);
         }
 
-        .touch-hint-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            animation: bounce 1.5s ease-in-out infinite;
+        .btn-icon {
+            font-size: 4rem;
+            line-height: 1;
+            opacity: 0.8;
+        }
+
+        .up-btn .btn-icon {
+            color: #00f5ff;
+            text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+        }
+
+        .down-btn .btn-icon {
+            color: #ff00ff;
+            text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .btn-label {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            opacity: 0.7;
+        }
+
+        .up-btn .btn-label {
+            color: #00f5ff;
+        }
+
+        .down-btn .btn-label {
+            color: #ff00ff;
         }
 
         @keyframes bounce {
@@ -449,6 +499,7 @@
                 <span class="player-badge left" id="playerBadge">P1</span>
                 <span class="player-name-display" id="playerNameDisplay"></span>
             </div>
+            <button class="pause-btn" id="pauseBtn">⏸</button>
             <div class="connection-indicator">
                 <span class="conn-dot"></span>
                 <span>Connected</span>
@@ -462,15 +513,16 @@
         </div>
 
         <div class="touch-pad" id="touchPad">
-            <div class="touch-area" id="touchArea">
-                <div class="paddle-track">
-                    <div class="paddle-indicator left" id="paddleIndicator"></div>
-                </div>
-            </div>
-            
-            <div class="touch-hint" id="touchHint">
-                <div class="touch-hint-icon">↕</div>
-                <div>Drag to move paddle</div>
+            <div class="button-controls">
+                <button class="control-btn up-btn" id="upBtn">
+                    <div class="btn-icon">▲</div>
+                    <div class="btn-label">UP</div>
+                </button>
+                
+                <button class="control-btn down-btn" id="downBtn">
+                    <div class="btn-icon">▼</div>
+                    <div class="btn-label">DOWN</div>
+                </button>
             </div>
 
             <div class="waiting-message" id="waitingMessage">
